@@ -1,0 +1,49 @@
+version: '3.3'
+
+services:
+
+# Should be removed after hooking with RDS
+# The Database
+  database:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_USER: amoghe
+      MYSQL_PASSWORD: example
+      MYSQL_DATABASE: Drupal8
+    volumes:
+        - dbdata:/var/lib/mysql
+
+  # The Application
+  app:
+    environment:
+      - web-env=development
+    build:
+      context: ./
+      dockerfile: app.dev.dockerfile
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    
+    ports:
+      - 80:80
+      - 443:443
+
+# Should be removed after hooking with RDS
+# phpMyAdmin http://localhost:8080
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+     - "8080:80"
+    links:
+       - database:db
+    environment:
+       DB_HOST: database
+       MYSQL_USERNAME: root
+       MYSQL_ROOT_PASSWORD: secret
+
+volumes:
+  dbdata:
+
